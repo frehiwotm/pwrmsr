@@ -26,7 +26,7 @@ Generate workload with stochastic rate and video size with FFmpeg.
 
 
 import argparse
-import database
+import odatabase
 import os, sys, time, signal, shutil
 from multiprocessing import cpu_count
 import random, subprocess
@@ -62,7 +62,7 @@ def remove_finished_files():
 def workload(wait, size, args):
     if not os.path.isdir(args.dstdir):
         os.mkdir(args.dstdir)
-    db = database.database()
+    db = odatabase.database()
     while True:
 
         remove_finished_files()
