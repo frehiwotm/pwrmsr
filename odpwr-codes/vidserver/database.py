@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
-
 """
 Categorize and find videos into database.
 """
 
 import sqlite3, os, glob
 import random
-import shutil 
 
 class BaseDatabase(object):
     """
@@ -49,8 +47,7 @@ class videos(BaseDatabase):
     :param path: directory and pattern to search for videos
     :type path: str
     """
-    #def __init__(self, path="/home/videos/*.mp4", **kwargs):
-    def __init__(self, path="/home/frehiwot/Documents/videos/*.mp4", **kwargs):
+    def __init__(self, path="/home/odroid/Documents/videos/*.mp4", **kwargs):
 
         if super().__init__(**kwargs):    # Create Table
             self.conn.execute("CREATE TABLE videos (vid INT PRIMARY KEY, fname TEXT, size INT)")
@@ -78,23 +75,7 @@ class videos(BaseDatabase):
 
         c = self.conn.cursor()
         c.execute("SELECT fname, size FROM videos ORDER BY ABS(size - ?) LIMIT 1", (size,))
-        #c.execute("SELECT fname FROM videos ORDER BY ABS(size - ?) LIMIT 1", (size,))
         return c.fetchone()
-        
-'''
-    def copy_file(self, src, dest="/home/frehiwot/Documents/vid/"): # dest='/home/lab/frehiwot/task2016/videos'):
-        """
-        Copy a file to dest directory.
-        """
-        try:
-            for fname in src:
-                #print(fname)
-                shutil.copy(fname, dest)
-        except shutil.Error as e:
-            print("Error: %s " % e)
-        except IOError as e:
-            print("Error: %s " % e.strerror)
-'''
 
 
 class database(videos):

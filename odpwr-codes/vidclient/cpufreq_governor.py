@@ -30,18 +30,18 @@ import time, os
 
 
 # Config
-dstdir = "/home/frehiwot/Documents/pwr_odroid/cpufreq-governor/"
+dstdir = "/home/lab/frehiwot/cpufreq-governor-dstat/"
 workloads = [
-                dict(time=60, wait=30, uvmin=1, vmax=30000000),
-                #dict(time=3600, idle=True), time=3600,
+                dict(time=3600, wait=30, uvmin=1, vmax=30000000),
+                #dict(time=3600, idle=True),
         ]
-sockets = { 1 : list(range(1)),
-            2 : list(range(4)),         # governor will be set for all vCPU incl. HyperThreads
-            3 : list(range(6)),
-            4 : list(range(8)),
-          }
-governors = ("performance", "powersave", "conservative", "ondemand")
-#governors = ("powersave", )
+sockets = { #1 : list(range(4)),         # governor will be set for all vCPU incl. HyperThreads
+            #2 : list(range(8)),
+            #3 : list(range(12)),
+            4 : list(range(16)),
+        }
+#governors = ("performance", "powersave", "conservative", "ondemand")
+governors = ("powersave", )
 
 
 
@@ -53,7 +53,7 @@ class VidServer(apy.VidServer):
     def workload_start(self, wait=None, vmax=None, cpus=None, uvmin=None, **trash):
         if self._workload is not None:
             self.stop(self._workload)
-        command = "/home/frehiwot/Documents/pwr_odroid/odpwr-codes/wlgen_cpufreq-governor.py --size uni"
+        command = "/home/odroid/Documents/vidserver/wlgen_cpufreq-governor.py --size uni"
         if wait is not None:    command += " --wait {}".format(wait)
         if vmax is not None:    command += " --vmax {}".format(vmax)
         if uvmin is not None:   command += " --uvmin {}".format(uvmin)
@@ -75,7 +75,10 @@ def main():
     apy.announce()
     vidserver = VidServer()
     vidserver.announce()
-
+    vidserver.ntpdate()
+    power = apy.PwrSmplr(1)
+    power.announce()
+    power.ntpdate(critical=False) #???
 
     for wl in workloads:
         idle = "idle" in wl and wl["idle"]
@@ -89,10 +92,13 @@ def main():
                 if not idle:
                     vidserver.workload_start(cpus=cpus, **wl)
                 vidserver.dstat_start()
+                power.WT230_start()
 
                 # measure
                 time.sleep(wl["time"])
 
+                # stop
+                power.WT230_stop()
                 vidserver.dstat_stop()
                 if not idle:
                     vidserver.workload_stop()
@@ -102,14 +108,19 @@ def main():
                 prefix = "sockets={}_time={}_".format(s, wl["time"])
                 prefix += "idle_governor={}".format(governor) if idle \
                             else "wait={wait}_uvmin={uvmin}_vmax={vmax}_governor={g}".format(g=governor, **wl)
+                power.WT230_save(os.path.join(dstdir, "{}_power.csv".format(prefix)))
                 vidserver.dstat_save(os.path.join(dstdir, "{}_dstat.csv".format(prefix)))
 
             # skip different sockets (used only by workload) on idle
             if idle:    break
 
     vidserver.rmannounce()
+    power.rmannounce()
+    apy.rmannounce()
 
     return 0
+
+
 
 
 if __name__ == '__main__':

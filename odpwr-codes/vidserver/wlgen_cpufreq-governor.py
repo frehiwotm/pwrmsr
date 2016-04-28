@@ -26,7 +26,7 @@ Generate workload with stochastic rate and video size with FFmpeg.
 
 
 import argparse
-import odatabase
+import database
 import os, sys, time, signal, shutil
 from multiprocessing import cpu_count
 import random, subprocess
@@ -62,7 +62,7 @@ def remove_finished_files():
 def workload(wait, size, args):
     if not os.path.isdir(args.dstdir):
         os.mkdir(args.dstdir)
-    db = odatabase.database()
+    db = database.database()
     while True:
 
         remove_finished_files()
@@ -84,8 +84,8 @@ def main():
 
     parser = argparse.ArgumentParser(description="Video transcoding workload generator.",
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-d", "--dstdir", default="/home/frehiwot/Documents/cpufreq/", help="temporary destination directory of transcoded videos")
-    parser.add_argument("--vmax", type=int, default=int(80e6), help="maximum video size")
+    parser.add_argument("-d", "--dstdir", default="/home/odroid/Documents/cpufreq/", help="temporary destination directory of transcoded videos")
+    parser.add_argument("--vmax", type=int, default=int(50e6), help="maximum video size")
     parser.add_argument("-c", "--cpus", type=lambda s: [int(i) for i in s.split(",")], default=list(range(cpu_count())), help="list of CPUs a transcoding is started on after every wait")
 
     parser.add_argument("-w", "--wait", type=int, default=30, help="time between transcodings")
